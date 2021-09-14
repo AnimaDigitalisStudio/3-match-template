@@ -16,6 +16,7 @@ public sealed class Board : MonoBehaviour
     public int Width => Tiles.GetLength( dimension: 0 );
     public int Height => Tiles.GetLength( dimension: 1);
     private void Awake() => Instance = this;
+    private readonly List<Tile> _selection = new List<Tile>();
 
     private void Start()
     {
@@ -31,10 +32,25 @@ public sealed class Board : MonoBehaviour
                 tile.y = y;
 
                 Tiles[x, y] = tile;
-                Debug.Log(ItemDatabase.Items);
                 tile.Item =ItemDatabase.Items[Random.Range(0, ItemDatabase.Items.Length)];
 
             }
         }
+    }
+
+    public void Select(Tile tile)
+    {
+        if (!_selection.Contains(tile)) _selection.Add(tile);
+
+        if (_selection.Count < 2) return;
+
+        Debug.Log($"Selected tales at ({_selection[0].x}, {_selection[0].y}) and ({_selection[1].x}, {_selection[1].y})");
+
+        _selection.Clear();
+    }
+
+    public void Swap(Tile tile1, Tile tile2)
+    {
+        
     }
 }
