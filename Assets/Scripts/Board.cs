@@ -10,11 +10,12 @@ using Random = UnityEngine.Random;
 public sealed class Board : MonoBehaviour
 {
     public static Board Instance { get; private set; }
-
+    [SerializeField] private AudioClip collectSound;
+    [SerializeField] private AudioSource audioSource;
     public Row[] rows;
     public Tile[,] Tiles { get; private set; }
-    public int Width => Tiles.GetLength( dimension: 0 );
-    public int Height => Tiles.GetLength( dimension: 1);
+    public int Width => Tiles.GetLength( 0 );
+    public int Height => Tiles.GetLength( 1 );
     private void Awake() => Instance = this;
     private readonly List<Tile> _selection = new List<Tile>();
     private const float TweenDuration = 0.25f;
@@ -41,7 +42,17 @@ public sealed class Board : MonoBehaviour
 
     public async void Select(Tile tile)
     {
-        if (!_selection.Contains(tile)) _selection.Add(tile);
+        if (!_selection.Contains(tile))
+        {
+            if (_selection.Count > 0)
+            {
+                if (Array.IndexOf(_selection[0].Neighbours, tile) != -1) _selection.Add(tile);
+            }
+            else
+            {
+                _selection.Add(tile);
+            }
+        }
 
         if (_selection.Count < 2) return;
 
@@ -115,23 +126,32 @@ public sealed class Board : MonoBehaviour
 
                 if (connectedTiles.Skip(1).Count() < 2) continue;
 
-                var deflatesequence = DOTween.Sequence();
+                var deflateSequence = DOTween.Sequence();
 
-                foreach (var item in connectedTiles) deflatesequence.Join(item.icon.transform.DOScale(Vector3.zero, TweenDuration));
+                foreach (var item in connectedTiles) deflateSequence.Join(item.icon.transform.DOScale(Vector3.zero, TweenDuration));
+
+                audioSource.PlayOneShot(collectSound);
+
+                ScoreCounter.Instance.Score += tile.Item.value * connectedTiles.Count;
                 
-                await deflatesequence.Play().AsyncWaitForCompletion();
+                await deflateSequence.Play().AsyncWaitForCompletion();
 
                 var inflateSequence = DOTween.Sequence();
+
+                Vector3 myDimension = new Vector3(10f, 10f, 0f);
 
                 foreach (var item in connectedTiles) 
                 {
                     item.Item = ItemDatabase.Items[Random.Range(0, ItemDatabase.Items.Length)];
 
-                    inflateSequence.Join(item.icon.transform.DOScale(Vector3.one, TweenDuration));
+                    inflateSequence.Join(item.icon.transform.DOScale(myDimension, TweenDuration));
 
                 }
 
                 await inflateSequence.Play().AsyncWaitForCompletion();
+
+                x = 0;
+                y = 0;
 
             }
         }
