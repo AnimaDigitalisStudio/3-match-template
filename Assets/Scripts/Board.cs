@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections;
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,11 +32,13 @@ public sealed class Board : MonoBehaviour
                 tile.x = x;
                 tile.y = y;
 
-                Tiles[x, y] = tile;
                 tile.Item =ItemDatabase.Items[Random.Range(0, ItemDatabase.Items.Length)];
 
+                Tiles[x, y] = tile;
             }
         }
+
+        Pop();
     }
 
     public async void Select(Tile tile)
